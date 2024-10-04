@@ -1,42 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Script Searcher</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="header">
-    <h1 class="header-title">Script Searcher</h1>
-    <button class="button dark-mode-button" id="dark-mode-toggle">Dark Mode</button>
-  </header>
-  <main class="container">
-    <section class="section search-section">
-      <form id="search-form" class="search-form">
-        <div class="form-group">
-          <label class="label" for="search-input">Search Scripts:</label>
-          <input class="input" type="text" id="search-input" placeholder="Search Script...">
-        </div>
-        <div class="form-group">
-          <label class="label" for="mode-select">Script Mode:</label>
-          <select class="select" id="mode-select">
-            <option value="free">Free</option>
-            <option value="paid">Paid</option>
-          </select>
-        </div>
-        <button class="button search-button" type="submit">Search</button>
-      </form>
-    </section>
-    <section class="section results-section">
-      <div class="results" id="results"></div>
-      <button class="button load-more-button" id="load-more">Load More</button>
-    </section>
-  </main>
-  <footer class="footer">
-    <p>&copy; 2024 Xdot All rights reserved. | You can use it but give credit.</p>
-  </footer>
-  <script src="script.js"></script>
-</body>
-<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Script Hub</title>
+    <link rel="stylesheet" href="style.css"
+  </head>
+ 
+  <body>
+    <h1>Rscripts App</h1>
+    <div id="scripts-container"></div>
+ 
+    <script>
+      // Fetch and display scripts
+      fetch("https://rscripts.net/api/v2/scripts?page=1&orderBy=date&sort=desc")
+        .then((response) => response.json())
+        .then((data) => {
+          const scriptsContainer = document.getElementById("scripts-container");
+ 
+          const scripts = data.scripts.map((script) => {
+            const hasUser = script.user;
+ 
+            const profilePicture = (hasUser && script.user.image) ? script.user.image : "https://i.pravatar.cc/300";
+            const username = hasUser ? script.user.username : script.creator;
+ 
+            const scriptElement = document.createElement("div");
+            scriptElement.innerHTML = `
+              <h2>${script.title}</h2>
+              <p>${script.description}</p>
+              <img style="width: 40px; height: 40px; border-radius: 50%;" src="${profilePicture}" alt="Profile picture of ${username}">
+              <p>Creator: ${username}</p>
+              <img src="${script.image}" alt="${script.title}">
+              <textarea id="script-${script._id}"></textarea>
+            `;
+ 
+            const downloadUrl = script.rawScript;
+ 
+            // Fetch and display the script content
+            fetch(downloadUrl)
+              .then((response) => response.text())
+              .then((scriptContent) => {
+                const textArea = scriptElement.querySelector(
+                  `#script-${script._id}`
+                );
+                textArea.value = scriptContent;
+              })
+              .catch((error) => {
+                console.error(
+                  `Error fetching script content for ${script.title}:`,
+                  error
+                );
+              });
+ 
+            return scriptElement;
+          });
+ 
+          scripts.forEach((scriptElement) => {
+            scriptsContainer.appendChild(scriptElement);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching scripts:", error);
+        });
+ 
+      // Helper function to check if a URL is valid
+      function isValidUrl(url) {
+        try {
+          new URL(url);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+    </script>
+  </body>
 </html>
